@@ -4,7 +4,7 @@ import random
 def digitsData():
     ''' Read in the handwritten digits data from the file 'digits.dat', and
     return the data points and their labels as two lists. '''
-    with open('digits.dat') as inFile:
+    with open('../data/digits.dat') as inFile:
         lines = inFile.readlines()
 
     data = [line.strip().split(',') for line in lines]

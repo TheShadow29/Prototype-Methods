@@ -46,7 +46,7 @@ def init_centroids(labelled_data, k):
 def sum_cluster(labelled_cluster):
     sum_ = labelled_cluster[0][1].copy()
     for (label, data) in labelled_cluster[1:]:
-        sum_ = np.sum(sum_,data)
+        sum_ += data
     return sum_
 
 def mean_cluster(labelled_cluster):
@@ -94,23 +94,23 @@ def repeat_until_convergence(labelled_data, labelled_clusters,unlabelled_centroi
     while True:
         unlabelled_old_centroids = unlabelled_centroids
         unlabelled_centroids = move_centroids(labelled_clusters)
-
+        labelled_clusters = form_clusters(labelled_data, unlabelled_centroids)
         differences = map(lambda a,b : np.linalg.norm(a-b), unlabelled_centroids, unlabelled_old_centroids)
         max_diff = max(differences)
-        difference_change = abs((max_difference-previous_max_difference)/np.mean([previous_max_difference,max_difference])) * 100
+        difference_change = abs((max_diff-prev_max_diff)/np.mean([prev_max_diff,max_diff])) * 100
         prev_max_diff = max_diff
 
         if np.isnan(difference_change):
             break
 
-    return
+    return labelled_clusters, unlabelled_centroids
 
 def cluster(labelled_data,k):
     """
     runs k-means clustering on the data. It is assumed that the data is labelled.
     """
     centroids = init_centroids(labelled_data,k)
-    clusters = form_clusters(labelled_data,k)
+    clusters = form_clusters(labelled_data,centroids)
     final_clusters, final_centroids = repeat_until_convergence(labelled_data, clusters, centroids)
 
     return final_clusters, final_centroids
@@ -127,6 +127,8 @@ def assign_labels_to_clusters(clusters, centroids):
         most_common = max(set(labels),key=labels.count)
         centroid = (most_common,clusters[i])
         labelled_centroids.append(centroid)
+    # print("labelled Centroids[0] ")
+    # print(labelled_centroids[0])
     return labelled_centroids
 
 def classify_digits(digit, labelled_centroids):
@@ -137,6 +139,10 @@ def classify_digits(digit, labelled_centroids):
     """
     min_dist = float("inf")
     for(label,centroid) in labelled_centroids:
+        # print("Digit Line 140 ")
+        # print(digit)
+        # print("Centroid Line 142 ")
+        # print(centroid)
         dist = np.linalg.norm(digit - centroid)
         if (dist < min_dist):
             min_dist = dist
@@ -149,6 +155,7 @@ def get_error_rate(digits, labelled_centroids):
     """
     classified_incorrect = 0
     for(label, digit) in digits:
+        #print (digit)
         classified_label = classify_digits(digit, labelled_centroids)
         if classified_label != label:
             classified_incorrect += 1
